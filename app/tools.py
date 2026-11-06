@@ -1,10 +1,11 @@
 """第3回: エージェントに持たせるツール。
 
-ここに書いた関数の docstring と型ヒントが、そのままモデルへの「ツールの説明文」になる。
-説明文を書き換えると、モデルがツールを使うかどうか・どんな引数で呼ぶかが変わる。
+    講座の用語集から用語を検索し、定義と、どの回で扱うかを返す。
+    答える前に使うこと。query には調べたい用語を1つだけ入れる（例: "LoRA"）。
 """
 
 import json
+import random
 from functools import cache
 from pathlib import Path
 
@@ -63,6 +64,26 @@ def search_glossary(query: str) -> str:
             }
             for e in hits
         ],
+        ensure_ascii=False,
+    )
+
+
+def make_quiz(lecture: int) -> str:
+    """指定した回の用語から1つを選び、確認問題と答えを返す。
+
+    「第2回の確認問題を出して」のように、
+    復習用の問題を求められたときに使う。
+    """
+    terms = [term for term in load_glossary() if term["lecture"] == lecture]
+    if not terms:
+        return f"第{lecture}回の用語が用語集にありません。"
+
+    term = random.choice(terms)
+    return json.dumps(
+        {
+            "question": f"「{term['term']}」とは何ですか？",
+            "answer": term["definition"],
+        },
         ensure_ascii=False,
     )
 
