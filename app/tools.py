@@ -6,10 +6,12 @@
 
 import json
 import random
+from datetime import datetime, timezone
 from functools import cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LEARNING_LOG_DIR = Path(__file__).resolve().parent.parent / "learning_log"
 MAX_RESULTS = 3
 
 
@@ -98,3 +100,15 @@ def get_lecture_summary(lecture: int) -> str:
         available = sorted(p.stem for p in (DATA_DIR / "lectures").glob("*.md"))
         return f"第{lecture}回の要点はまだありません。用意されている回: {', '.join(available)}"
     return path.read_text(encoding="utf-8")
+
+
+def save_learning_log(content: str) -> str:
+    """学習の記録を learning_log/ に Markdown 形式で保存する。
+
+    学習内容や振り返りを保存してほしいと依頼されたときに使う。
+    保存前に利用者の承認が必要。
+    """
+    LEARNING_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    filename = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ.md")
+    (LEARNING_LOG_DIR / filename).write_text(content, encoding="utf-8")
+    return f"学習記録を learning_log/{filename} に保存しました。"
